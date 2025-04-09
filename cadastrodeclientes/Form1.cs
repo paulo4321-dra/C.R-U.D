@@ -22,6 +22,87 @@ namespace cadastrodeclientes
         public frmCadastrodeClientes()
         {
             InitializeComponent();
+
+            // Configuração inicial da Listview para a exibição dos dados dos clientes
+            lstCliente.View = View.Details;
+            lstCliente.LabelEdit = true;
+            lstCliente.AllowColumnReorder = true;
+            lstCliente.FullRowSelect = true;
+            lstCliente.GridLines = true;
+
+            // Definindo as colunas da Listview
+            lstCliente.Columns.Add("Codigo", 100, HorizontalAlignment.Left);
+            lstCliente.Columns.Add("Nome Completo", 200, HorizontalAlignment.Left);
+            lstCliente.Columns.Add("Nome Social", 200, HorizontalAlignment.Left);
+            lstCliente.Columns.Add("E-mail", 200, HorizontalAlignment.Left);
+            lstCliente.Columns.Add("CPF", 200, HorizontalAlignment.Left);
+
+
+            carregar_clientes();
+        }
+
+        private void carregar_clientes_com_query(string query)
+        {
+            try
+            {
+                conexao = new MySqlConnection(data_source);
+                conexao.Open();
+
+                MySqlCommand cmd = new MySqlCommand(query, conexao);
+
+                if (query.Contains("@q"))
+                {
+                    cmd.Parameters.AddWithValue("@q", "%" + txtBuscar.Text + "%");
+                }
+
+                MySqlDataReader reader = cmd.ExecuteReader();
+
+                lstCliente.Items.Clear();
+
+                while (reader.Read())
+                {
+                    string[] row =
+                    {
+                        Convert.ToString(reader.GetInt32(0)),
+                        reader.GetString(1),
+                        reader.GetString(2),
+                        reader.GetString(3),
+                        reader.GetString(4)
+                    };
+
+                    lstCliente.Items.Add(new ListViewItem(row));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                MessageBox.Show("Erro. " + ex.Number + "Ocorreu: " + ex.Message,
+                       "Erro",
+                       MessageBoxButtons.OK,
+                       MessageBoxIcon.Error);
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ocorreu: " + ex.Message,
+                    "Erro",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+
+            finally
+            {
+                if (conexao != null && conexao.State == ConnectionState.Open)
+                {
+                    conexao.Close();
+                }
+
+            }
+        }
+
+        private void carregar_clientes()
+        {
+            string query = "SELECT * FROM dadosdecliente ORDER BY codigo DESC";
+            carregar_clientes_com_query(query);
         }
         private bool IsValidEmail(string email)
         {
@@ -110,6 +191,20 @@ namespace cadastrodeclientes
                     "Sucesso",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
+
+                // Limpar os campos após os sucesso
+                txtNomeCompleto.Text = String.Empty;
+                txtNomeSocial.Text = " ";
+                txtEmail.Text = " ";
+                txtCPF.Text = " ";
+
+
+                // Recarregar os clientes na Listview
+                carregar_clientes();
+
+
+                // Muda para a aba de pesquisa
+                tabControl1.SelectedIndex = 1;
             }
 
             catch (MySqlException ex)
@@ -146,6 +241,12 @@ namespace cadastrodeclientes
                   //  MessageBox.Show("Conexão fechada com sucesso");
                 }
             }
+        }
+
+        private void btnPesquisar_Click(object sender, EventArgs e)
+        {
+            string query = "SELECT * FROM dadosdecliente WHERE nomecompleto LIKE @q OR nomesocial LIKE @q ORDER BY codigo DESC";
+            carregar_clientes_com_query(query);
         }
     }
 }
