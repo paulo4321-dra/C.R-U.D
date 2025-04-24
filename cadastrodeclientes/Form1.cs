@@ -288,6 +288,8 @@ namespace cadastrodeclientes
         {
             ListView.SelectedListViewItemCollection clientedaselecao = lstCliente.SelectedItems;
 
+            btnExcluirCliente.Visible = true;
+
             foreach (ListViewItem item in clientedaselecao)
             {
                 codigo_cliente = Convert.ToInt32 (item.SubItems[0].Text);
@@ -310,6 +312,11 @@ namespace cadastrodeclientes
 
         private void btnNovoCliente_Click(object sender, EventArgs e)
         {
+            zerar_formulario();
+        }
+
+        private void zerar_formulario()
+        {
             codigo_cliente = null;
 
             txtNomeCompleto.Text = String.Empty;
@@ -318,6 +325,9 @@ namespace cadastrodeclientes
             txtCPF.Text = " ";
 
             txtNomeCompleto.Focus();
+
+            btnExcluirCliente.Visible = false;
+
         }
 
         private void toolStripMenuItem1_Click(object sender, EventArgs e)
@@ -332,6 +342,7 @@ namespace cadastrodeclientes
 
         private void excluir_cliente()
         {
+            
             try
             {
                 DialogResult opcaoDigitada = MessageBox.Show("Tem certeza que deseja excluir o registro de código : " + codigo_cliente,
@@ -363,6 +374,11 @@ namespace cadastrodeclientes
                                      MessageBoxIcon.Information);
 
                     carregar_clientes();
+
+                    zerar_formulario();
+
+                  
+
                 }
             }
 
